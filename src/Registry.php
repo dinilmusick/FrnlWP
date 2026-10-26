@@ -1,0 +1,11 @@
+<?php
+namespace FrnlWP;
+use FrnlWP\Core\Capability;
+final class Registry {
+    private array $entries=[];
+    public function register(string $id,int $version,mixed $value,?object $contract=null,array $capabilities=[]):void{if(isset($this->entries[$id])&&$this->entries[$id]['version']>$version)throw new \RuntimeException("Older version: $id");$this->entries[$id]=compact('id','version','value','contract','capabilities');}
+    public function has(string $id):bool{return isset($this->entries[$id]);}
+    public function get(string $id):mixed{return $this->entries[$id]['value']??throw new \RuntimeException("Registration not found: $id");}
+    public function list():array{return array_values($this->entries);}
+    public function requireCapabilities(string $id,array $available):void{foreach($this->entries[$id]['capabilities']??[] as $cap){$needs=$cap instanceof Capability?$cap->requires:[];foreach($needs as $need)if(!in_array($need,$available,true))throw new \RuntimeException("Missing capability: $need");}}
+}
