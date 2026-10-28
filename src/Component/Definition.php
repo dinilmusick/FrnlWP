@@ -1,14 +1,8 @@
 <?php
 namespace FrnlWP\Component;
-
 final class Definition {
-    public function __construct(
-        public readonly string $id,
-        public readonly array $states=[],
-        public readonly array $visual=[],
-        public readonly array $events=[],
-    ) {}
-    public function toArray(): array {
-        return ['id'=>$this->id,'states'=>$this->states,'visual'=>$this->visual,'events'=>$this->events];
-    }
+    public function __construct(public readonly string $name,public readonly array $states=[],public readonly array $events=[],public readonly array $visualParameters=[]){}
+    public function toArray():array{return ['name'=>$this->name,'states'=>$this->states,'events'=>$this->events,'visualParameters'=>$this->visualParameters];}
+    public function hasState(string $state):bool{return isset($this->states[$state]);}
+    public function validateState(string $state):void{if(!$this->hasState($state))throw new \InvalidArgumentException("Unknown component state: $state");}
 }
