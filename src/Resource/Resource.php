@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP\Resource;
 use FrnlWP\Core\Fault;
 final class Resource {

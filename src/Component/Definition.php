@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP\Component;
 final class Definition {
     public function __construct(public readonly string $name,public readonly array $states=[],public readonly array $events=[],public readonly array $visualParameters=[]){}

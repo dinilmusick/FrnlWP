@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP\Validation;
 final class Input {
     public static function requireString(mixed $value,string $name):string{if(!is_string($value)||trim($value)==='')throw new \InvalidArgumentException("$name must be a non-empty string");return $value;}

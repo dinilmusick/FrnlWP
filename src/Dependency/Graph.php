@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP\Dependency;
 final class Graph {
     private array $nodes=[];private array $providers=[];

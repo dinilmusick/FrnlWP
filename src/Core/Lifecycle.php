@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP\Core;
 final class Lifecycle {
     private const MAP=['created'=>['initializing','disposing'],'initializing'=>['mounted','failed','disposing'],'mounted'=>['active','suspended','disposing','failed'],'active'=>['suspended','disposing','failed'],'suspended'=>['resuming','disposing','failed'],'resuming'=>['active','failed','disposing'],'disposing'=>['disposed'],'disposed'=>[],'failed'=>['initializing','disposing','disposed']];

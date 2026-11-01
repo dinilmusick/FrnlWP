@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP\Routing;
 final class Router {
     public function __construct(private array $routes=[]){}

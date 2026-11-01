@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP\Events;
 final class EventBus {
     private array $listeners=[];

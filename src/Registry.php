@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace FrnlWP;
 use FrnlWP\Core\Capability;
 final class Registry {
