@@ -79,7 +79,9 @@ class FrontendApi
             ],
         ];
 
-        $events = $this->store->registeredEvents($componentId);
+        // Built-in control names are reserved; do not advertise shadowed events.
+        $events = array_values(array_filter($this->store->registeredEvents($componentId),
+            static fn(string $event): bool => !in_array($event, ['setState', 'setVisualParameter', 'applyTheme'], true)));
         foreach ($events as $event) {
             if (!isset($controls[$event])) {
                 $controls[$event] = ['id' => $event, 'kind' => 'event', 'available' => true];
