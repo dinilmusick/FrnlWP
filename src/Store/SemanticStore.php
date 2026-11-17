@@ -10,6 +10,7 @@ final class SemanticStore
     private array $definitions = [];
     private array $themes = [];
     private array $handlers = [];
+    private int $nextHandlerId = 0;
     private array $parents = [];
     private array $overrides = [];
     private array $libraries = [];
@@ -23,7 +24,7 @@ final class SemanticStore
     public function unregisterEntity(string $id): void
     {
         unset($this->entities[$id], $this->parents[$id], $this->overrides[$id]);
-        foreach (array_keys($this->handlers) as $key) if (str_starts_with($key, $id . '.')) unset($this->handlers[$key]);
+        unset($this->handlers[$id]);
     }
 
     public function setState(string $id, string $state): void
@@ -95,10 +96,9 @@ final class SemanticStore
     }
 
     public function registeredEvents(string $id): array {
-        $this->requireEntity($id); $events = []; $prefix = $id . '.';
-        foreach ($this->handlers as $key => $handlers)
-            if ($handlers !== [] && str_starts_with($key, $prefix))
-                $events[] = substr($key, strlen($prefix));
+        $this->requireEntity($id); $events = [];
+        foreach ($this->handlers[$id] ?? [] as $event => $handlers)
+            if ($handlers !== []) $events[] = (string) $event;
         sort($events); return $events;
     }
 
@@ -154,11 +154,10 @@ final class SemanticStore
 
     public function on(string $id, string $event, callable $handler): callable
     {
-        $key = $id . '.' . $event;
-        $this->handlers[$key][] = $handler;
-        $i = array_key_last($this->handlers[$key]);
-        return function () use ($key, $i): void {
-            unset($this->handlers[$key][$i]);
+        $i = ++$this->nextHandlerId;
+        $this->handlers[$id][$event][$i] = $handler;
+        return function () use ($id, $event, $i): void {
+            unset($this->handlers[$id][$event][$i]);
         };
     }
 
@@ -166,7 +165,7 @@ final class SemanticStore
     {
         $this->requireEntity($id);
         $result = null;
-        foreach ($this->handlers[$id . '.' . $event] ?? [] as $h) {
+        foreach ($this->handlers[$id][$event] ?? [] as $h) {
             $result = $h($payload, ['componentId' => $id, 'state' => $this->entities[$id]['state'], 'store' => $this]);
         }
         return $result;
