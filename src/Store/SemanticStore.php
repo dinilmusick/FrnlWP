@@ -23,6 +23,7 @@ final class SemanticStore
     public function unregisterEntity(string $id): void
     {
         unset($this->entities[$id], $this->parents[$id], $this->overrides[$id]);
+        foreach (array_keys($this->handlers) as $key) if (str_starts_with($key, $id . '.')) unset($this->handlers[$key]);
     }
 
     public function setState(string $id, string $state): void
@@ -93,6 +94,14 @@ final class SemanticStore
         return $this->events;
     }
 
+    public function registeredEvents(string $id): array {
+        $this->requireEntity($id); $events = []; $prefix = $id . '.';
+        foreach ($this->handlers as $key => $handlers)
+            if ($handlers !== [] && str_starts_with($key, $prefix))
+                $events[] = substr($key, strlen($prefix));
+        sort($events); return $events;
+    }
+
     public function registerDefinition(string $id, array $definition): void
     {
         $this->definitions[$id] = $definition;
@@ -155,6 +164,7 @@ final class SemanticStore
 
     public function invoke(string $id, string $event, mixed $payload = null): mixed
     {
+        $this->requireEntity($id);
         $result = null;
         foreach ($this->handlers[$id . '.' . $event] ?? [] as $h) {
             $result = $h($payload, ['componentId' => $id, 'state' => $this->entities[$id]['state'], 'store' => $this]);
