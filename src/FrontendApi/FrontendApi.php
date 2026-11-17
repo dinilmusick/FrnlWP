@@ -79,6 +79,13 @@ class FrontendApi
             ],
         ];
 
+        $events = $this->store->registeredEvents($componentId);
+        foreach ($events as $event) {
+            if (!isset($controls[$event])) {
+                $controls[$event] = ['id' => $event, 'kind' => 'event', 'available' => true];
+            }
+        }
+
         return [
             'id' => $componentId,
             'type' => $entity['type'] ?? 'Component',
@@ -94,7 +101,7 @@ class FrontendApi
             'properties' => $entity['properties'] ?? [],
             'visualParameters' => $this->store->getVisualParameters($componentId),
             'controls' => $controls,
-            'events' => array_keys($entity['events'] ?? []),
+            'events' => $events,
             'children' => $children,
         ];
     }
@@ -104,6 +111,10 @@ class FrontendApi
         $snapshot = $this->inspectComponent($componentId);
         if (!isset($snapshot['controls'][$controlId])) {
             throw new \InvalidArgumentException("Frnl control not found: {$componentId}.{$controlId}");
+        }
+
+        if (!$snapshot['controls'][$controlId]['available']) {
+            throw new \RuntimeException("Frnl control unavailable: {$componentId}.{$controlId}");
         }
 
         switch ($controlId) {
