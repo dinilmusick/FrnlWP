@@ -10,5 +10,6 @@ jobs:
       - run: php tools/validate.php
       - run: composer validate --strict
       - run: php tests/frontend-api-events.php
+      - run: php tests/frontend-hierarchy.php
       - run: php tests/ui-surface-asset.php
       - run: node --test tests/ui-surface.test.mjs
