@@ -98,13 +98,13 @@
       }
       if (element.tagName.toLowerCase() === 'input' &&
           (element.type === 'checkbox' || element.type === 'radio')) {
-        if (value !== 'true' && value !== 'false') {
+        if (typeof payload !== 'boolean') {
           throw new TypeError('Checkbox or radio requires a boolean value');
         }
-        if (element.type === 'radio' && value === 'false') {
+        if (element.type === 'radio' && !payload) {
           throw new Error('A radio control cannot be unchecked directly');
         }
-        element.checked = value === 'true';
+        element.checked = payload;
       } else {
         element.value = value;
       }
