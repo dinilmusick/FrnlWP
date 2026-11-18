@@ -33,7 +33,7 @@ class FakeElement {
   closest(selector) {
     for (let el = this; el; el = el.parentElement) {
       if (selector === '[data-frnl-component]' && el.matches(selector)) return el;
-      if (selector.includes('[hidden]') && (el.attrs.has('hidden') || el.getAttribute('aria-hidden') === 'true')) return el;
+      if (selector.includes('[hidden]') && (el.attrs.has('hidden') || el.getAttribute('aria-hidden') === 'true' || el.attrs.has('inert'))) return el;\n      if (selector === 'fieldset[disabled]' && el.tagName === 'FIELDSET' && el.disabled) return el;
     }
     return null;
   }
@@ -98,4 +98,21 @@ test('rejects hidden, disabled and ambiguous component targets', () => {
   assert.throws(() => surface.invoke('country', 'change', 'in'), /unavailable/);
   mount([parent, new FakeElement('dup'), new FakeElement('dup')]);
   assert.throws(() => surface.inspect(), /Duplicate Frnl component ID/);
+});
+
+test('blocks actions inside inert containers and disabled fieldsets', () => {
+  const { surface, button, parent } = setup();
+  parent.attrs.set('inert', '');
+  assert.equal(surface.inspect().components[1].visible, false);
+  assert.throws(() => surface.invoke('submit', 'click'), /unavailable/);
+  assert.equal(button.clicks, 0);
+  parent.attrs.delete('inert');
+  parent.tagName = 'FIELDSET';
+  parent.disabled = true;
+  assert.equal(surface.inspect().components[1].enabled, false);
+  assert.throws(() => surface.invoke('submit', 'click'), /unavailable/);
+  assert.equal(button.clicks, 0);
+  parent.disabled = false;
+  assert.equal(surface.invoke('submit', 'click'), true);
+  assert.equal(button.clicks, 1);
 });
