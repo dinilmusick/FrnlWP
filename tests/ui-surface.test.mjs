@@ -99,3 +99,23 @@ test('rejects hidden, disabled and ambiguous component targets', () => {
   mount([parent, new FakeElement('dup'), new FakeElement('dup')]);
   assert.throws(() => surface.inspect(), /Duplicate Frnl component ID/);
 });
+
+test('readonly controls are inspectable but cannot be synthetically edited', () => {
+  const { surface, text, select, button } = setup();
+  text.readOnly = true;
+  select.attrs.set('aria-readonly', 'true');
+  const snapshot = surface.inspect();
+  assert.deepEqual(snapshot.components.find(c => c.id === 'notes').controls, []);
+  assert.deepEqual(snapshot.components.find(c => c.id === 'country').controls, []);
+  assert.equal(snapshot.components.find(c => c.id === 'notes').enabled, true);
+  assert.throws(() => surface.invoke('notes', 'input', 'override'), /unavailable/);
+  assert.throws(() => surface.invoke('country', 'change', 'in'), /unavailable/);
+  assert.equal(text.value, '');
+  assert.equal(select.value, '');
+  assert.equal(surface.invoke('submit', 'click'), true);
+  assert.equal(button.clicks, 1);
+  text.readOnly = false;
+  select.attrs.delete('aria-readonly');
+  assert.equal(surface.invoke('notes', 'input', 'editable'), true);
+  assert.equal(text.value, 'editable');
+});
