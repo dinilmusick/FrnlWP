@@ -25,6 +25,12 @@ final class SemanticStore
     {
         unset($this->entities[$id], $this->parents[$id], $this->overrides[$id]);
         unset($this->handlers[$id]);
+        // Detach live children rather than leaving references to an unmounted parent.
+        foreach ($this->parents as $childId => $parentId) {
+            if ($parentId === $id) {
+                unset($this->parents[$childId]);
+            }
+        }
     }
 
     public function setState(string $id, string $state): void
@@ -179,7 +185,22 @@ final class SemanticStore
     public function parent(string $id, ?string $parentId = null): ?string
     {
         if (func_num_args() > 1) {
-            $this->parents[$id] = $parentId;
+            $this->requireEntity($id);
+            if ($parentId !== null) {
+                $this->requireEntity($parentId);
+                $visited = [$id => true];
+                $cursor = $parentId;
+                while ($cursor !== null) {
+                    if (isset($visited[$cursor])) {
+                        throw new \InvalidArgumentException("Circular Frnl parent assignment: $id");
+                    }
+                    $visited[$cursor] = true;
+                    $cursor = $this->parents[$cursor] ?? null;
+                }
+                $this->parents[$id] = $parentId;
+            } else {
+                unset($this->parents[$id]);
+            }
         }
         return $this->parents[$id] ?? null;
     }
