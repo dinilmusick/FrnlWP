@@ -26,7 +26,7 @@
     }
 
     function isVisible(element) {
-      if (element.closest('[hidden], [aria-hidden="true"]')) return false;
+      if (element.closest('[hidden], [aria-hidden="true"], [inert]')) return false;
       const view = element.ownerDocument && element.ownerDocument.defaultView;
       if (!view || typeof view.getComputedStyle !== 'function') return false;
       const style = view.getComputedStyle(element);
@@ -51,7 +51,8 @@
         const parentId = ancestor && byId.get(ancestor.getAttribute('data-frnl-component')) === ancestor
           ? ancestor.getAttribute('data-frnl-component') : null;
         const visible = isVisible(element);
-        const enabled = !element.disabled && element.getAttribute('aria-disabled') !== 'true';
+        const enabled = !element.disabled && element.getAttribute('aria-disabled') !== 'true'
+          && !element.closest('fieldset[disabled]');
         const rect = visible ? element.getBoundingClientRect() : null;
         components.push({
           id, parentId, type: element.tagName.toLowerCase(),
