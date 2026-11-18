@@ -120,6 +120,12 @@ test('checkbox and radio invocation updates checked state rather than value', ()
   assert.equal(radio.checked, true);
   assert.throws(() => surface.invoke('choice', 'change', false), /cannot be unchecked/);
   assert.throws(() => surface.invoke('opt-in', 'change', 'yes'), /boolean value/);
+  assert.throws(() => surface.invoke('opt-in', 'change', 'true'), /boolean value/);
+  assert.throws(() => surface.invoke('opt-in', 'change', 'false'), /boolean value/);
+  assert.throws(() => surface.invoke('opt-in', 'change', 1), /boolean value/);
+  assert.throws(() => surface.invoke('choice', 'change', 'true'), /boolean value/);
+  assert.equal(checkbox.checked, false);
+  assert.equal(radio.checked, true);
 });
 test('blocks actions inside inert containers and disabled fieldsets', () => {
   const { surface, button, parent } = setup();
