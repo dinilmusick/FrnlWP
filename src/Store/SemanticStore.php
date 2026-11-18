@@ -25,11 +25,9 @@ final class SemanticStore
     {
         unset($this->entities[$id], $this->parents[$id], $this->overrides[$id]);
         unset($this->handlers[$id]);
-        // Detach live children rather than leaving references to an unmounted parent.
+        // Detach children whose parent no longer exists.
         foreach ($this->parents as $childId => $parentId) {
-            if ($parentId === $id) {
-                unset($this->parents[$childId]);
-            }
+            if ($parentId === $id) unset($this->parents[$childId]);
         }
     }
 
@@ -76,30 +74,15 @@ final class SemanticStore
         return $this->entities[$id] ?? null;
     }
 
-    public function getEntities(): array
-    {
-        return $this->entities;
-    }
+    public function getEntities(): array { return $this->entities; }
 
-    public function getComponentParents(): array
-    {
-        return $this->parents;
-    }
+    public function getComponentParents(): array { return $this->parents; }
 
-    public function getThemes(): array
-    {
-        return $this->themes;
-    }
+    public function getThemes(): array { return $this->themes; }
 
-    public function getLibraries(): array
-    {
-        return $this->libraries;
-    }
+    public function getLibraries(): array { return $this->libraries; }
 
-    public function getEvents(): array
-    {
-        return $this->events;
-    }
+    public function getEvents(): array { return $this->events; }
 
     public function registeredEvents(string $id): array {
         $this->requireEntity($id); $events = [];
@@ -186,20 +169,15 @@ final class SemanticStore
     {
         if (func_num_args() > 1) {
             $this->requireEntity($id);
-            if ($parentId !== null) {
+            if ($parentId === null) unset($this->parents[$id]);
+            else {
                 $this->requireEntity($parentId);
                 $visited = [$id => true];
-                $cursor = $parentId;
-                while ($cursor !== null) {
-                    if (isset($visited[$cursor])) {
-                        throw new \InvalidArgumentException("Circular Frnl parent assignment: $id");
-                    }
+                for ($cursor = $parentId; $cursor !== null; $cursor = $this->parents[$cursor] ?? null) {
+                    if (isset($visited[$cursor])) throw new \InvalidArgumentException("Circular Frnl parent assignment: $id");
                     $visited[$cursor] = true;
-                    $cursor = $this->parents[$cursor] ?? null;
                 }
                 $this->parents[$id] = $parentId;
-            } else {
-                unset($this->parents[$id]);
             }
         }
         return $this->parents[$id] ?? null;
