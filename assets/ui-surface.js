@@ -26,7 +26,7 @@
     }
 
     function isVisible(element) {
-      if (element.closest('[hidden], [aria-hidden="true"]')) return false;
+      if (element.closest('[hidden], [aria-hidden="true"], [inert]')) return false;
       const view = element.ownerDocument && element.ownerDocument.defaultView;
       if (!view || typeof view.getComputedStyle !== 'function') return false;
       const style = view.getComputedStyle(element);
@@ -52,7 +52,8 @@
           ? ancestor.getAttribute('data-frnl-component') : null;
         const visible = isVisible(element);
         const readOnly = element.readOnly === true || element.getAttribute('aria-readonly') === 'true';
-        const enabled = !element.disabled && element.getAttribute('aria-disabled') !== 'true';
+        const enabled = !element.disabled && element.getAttribute('aria-disabled') !== 'true'
+          && !element.closest('fieldset[disabled]');
         const rect = visible ? element.getBoundingClientRect() : null;
         components.push({
           id, parentId, type: element.tagName.toLowerCase(),
@@ -95,7 +96,18 @@
           !Array.from(element.options).some(option => option.value === value)) {
         throw new Error('Selection is not an available option');
       }
-      element.value = value;
+      if (element.tagName.toLowerCase() === 'input' &&
+          (element.type === 'checkbox' || element.type === 'radio')) {
+        if (value !== 'true' && value !== 'false') {
+          throw new TypeError('Checkbox or radio requires a boolean value');
+        }
+        if (element.type === 'radio' && value === 'false') {
+          throw new Error('A radio control cannot be unchecked directly');
+        }
+        element.checked = value === 'true';
+      } else {
+        element.value = value;
+      }
       const view = element.ownerDocument.defaultView;
       element.dispatchEvent(new view.Event(controlId, { bubbles: true }));
       return true;

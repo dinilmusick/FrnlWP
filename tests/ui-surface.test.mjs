@@ -18,6 +18,8 @@ class FakeElement {
     this.visible = true;
     this.disabled = false;
     this.value = '';
+    this.type = 'text';
+    this.checked = false;
     this.options = [];
     this.events = [];
     this.clicks = 0;
@@ -33,7 +35,8 @@ class FakeElement {
   closest(selector) {
     for (let el = this; el; el = el.parentElement) {
       if (selector === '[data-frnl-component]' && el.matches(selector)) return el;
-      if (selector.includes('[hidden]') && (el.attrs.has('hidden') || el.getAttribute('aria-hidden') === 'true')) return el;
+      if (selector.includes('[hidden]') && (el.attrs.has('hidden') || el.getAttribute('aria-hidden') === 'true' || el.attrs.has('inert'))) return el;
+      if (selector === 'fieldset[disabled]' && el.tagName === 'FIELDSET' && el.disabled) return el;
     }
     return null;
   }
@@ -100,6 +103,40 @@ test('rejects hidden, disabled and ambiguous component targets', () => {
   assert.throws(() => surface.inspect(), /Duplicate Frnl component ID/);
 });
 
+test('checkbox and radio invocation updates checked state rather than value', () => {
+  const { surface, parent, mount } = setup();
+  const checkbox = new FakeElement('opt-in', 'INPUT', parent);
+  checkbox.type = 'checkbox';
+  const radio = new FakeElement('choice', 'INPUT', parent);
+  radio.type = 'radio';
+  mount([parent, checkbox, radio]);
+  assert.equal(surface.invoke('opt-in', 'change', true), true);
+  assert.equal(checkbox.checked, true);
+  assert.equal(checkbox.value, '');
+  assert.deepEqual(checkbox.events, ['change']);
+  assert.equal(surface.invoke('opt-in', 'change', false), true);
+  assert.equal(checkbox.checked, false);
+  assert.equal(surface.invoke('choice', 'change', true), true);
+  assert.equal(radio.checked, true);
+  assert.throws(() => surface.invoke('choice', 'change', false), /cannot be unchecked/);
+  assert.throws(() => surface.invoke('opt-in', 'change', 'yes'), /boolean value/);
+});
+test('blocks actions inside inert containers and disabled fieldsets', () => {
+  const { surface, button, parent } = setup();
+  parent.attrs.set('inert', '');
+  assert.equal(surface.inspect().components[1].visible, false);
+  assert.throws(() => surface.invoke('submit', 'click'), /unavailable/);
+  assert.equal(button.clicks, 0);
+  parent.attrs.delete('inert');
+  parent.tagName = 'FIELDSET';
+  parent.disabled = true;
+  assert.equal(surface.inspect().components[1].enabled, false);
+  assert.throws(() => surface.invoke('submit', 'click'), /unavailable/);
+  assert.equal(button.clicks, 0);
+  parent.disabled = false;
+  assert.equal(surface.invoke('submit', 'click'), true);
+  assert.equal(button.clicks, 1);
+});
 test('readonly controls are inspectable but cannot be synthetically edited', () => {
   const { surface, text, select, button } = setup();
   text.readOnly = true;
