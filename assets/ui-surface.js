@@ -51,6 +51,7 @@
         const parentId = ancestor && byId.get(ancestor.getAttribute('data-frnl-component')) === ancestor
           ? ancestor.getAttribute('data-frnl-component') : null;
         const visible = isVisible(element);
+        const readOnly = element.readOnly === true || element.getAttribute('aria-readonly') === 'true';
         const enabled = !element.disabled && element.getAttribute('aria-disabled') !== 'true';
         const rect = visible ? element.getBoundingClientRect() : null;
         components.push({
@@ -58,7 +59,7 @@
           state: element.getAttribute('data-frnl-state') || 'idle',
           role: element.getAttribute('role') || null,
           lifecycle: { mounted: true, rendered: true, mountedAt: mounts.get(element) },
-          visible, enabled, controls: visible && enabled ? controls(element) : [],
+          visible, enabled, controls: visible && enabled ? controls(element).filter(control => !readOnly || control === 'click') : [],
           rect: rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null,
           children: []
         });
