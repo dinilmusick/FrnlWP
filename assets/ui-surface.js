@@ -95,7 +95,18 @@
           !Array.from(element.options).some(option => option.value === value)) {
         throw new Error('Selection is not an available option');
       }
-      element.value = value;
+      if (element.tagName.toLowerCase() === 'input' &&
+          (element.type === 'checkbox' || element.type === 'radio')) {
+        if (value !== 'true' && value !== 'false') {
+          throw new TypeError('Checkbox or radio requires a boolean value');
+        }
+        if (element.type === 'radio' && value === 'false') {
+          throw new Error('A radio control cannot be unchecked directly');
+        }
+        element.checked = value === 'true';
+      } else {
+        element.value = value;
+      }
       const view = element.ownerDocument.defaultView;
       element.dispatchEvent(new view.Event(controlId, { bubbles: true }));
       return true;

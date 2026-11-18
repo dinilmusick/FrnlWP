@@ -18,6 +18,8 @@ class FakeElement {
     this.visible = true;
     this.disabled = false;
     this.value = '';
+    this.type = 'text';
+    this.checked = false;
     this.options = [];
     this.events = [];
     this.clicks = 0;
@@ -101,6 +103,24 @@ test('rejects hidden, disabled and ambiguous component targets', () => {
   assert.throws(() => surface.inspect(), /Duplicate Frnl component ID/);
 });
 
+test('checkbox and radio invocation updates checked state rather than value', () => {
+  const { surface, parent, mount } = setup();
+  const checkbox = new FakeElement('opt-in', 'INPUT', parent);
+  checkbox.type = 'checkbox';
+  const radio = new FakeElement('choice', 'INPUT', parent);
+  radio.type = 'radio';
+  mount([parent, checkbox, radio]);
+  assert.equal(surface.invoke('opt-in', 'change', true), true);
+  assert.equal(checkbox.checked, true);
+  assert.equal(checkbox.value, '');
+  assert.deepEqual(checkbox.events, ['change']);
+  assert.equal(surface.invoke('opt-in', 'change', false), true);
+  assert.equal(checkbox.checked, false);
+  assert.equal(surface.invoke('choice', 'change', true), true);
+  assert.equal(radio.checked, true);
+  assert.throws(() => surface.invoke('choice', 'change', false), /cannot be unchecked/);
+  assert.throws(() => surface.invoke('opt-in', 'change', 'yes'), /boolean value/);
+});
 test('blocks actions inside inert containers and disabled fieldsets', () => {
   const { surface, button, parent } = setup();
   parent.attrs.set('inert', '');
