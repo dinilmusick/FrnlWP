@@ -33,7 +33,8 @@ class FakeElement {
   closest(selector) {
     for (let el = this; el; el = el.parentElement) {
       if (selector === '[data-frnl-component]' && el.matches(selector)) return el;
-      if (selector.includes('[hidden]') && (el.attrs.has('hidden') || el.getAttribute('aria-hidden') === 'true' || el.attrs.has('inert'))) return el;\n      if (selector === 'fieldset[disabled]' && el.tagName === 'FIELDSET' && el.disabled) return el;
+      if (selector.includes('[hidden]') && (el.attrs.has('hidden') || el.getAttribute('aria-hidden') === 'true' || el.attrs.has('inert'))) return el;
+      if (selector === 'fieldset[disabled]' && el.tagName === 'FIELDSET' && el.disabled) return el;
     }
     return null;
   }
