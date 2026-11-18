@@ -105,8 +105,8 @@ test('readonly controls are inspectable but cannot be synthetically edited', () 
   text.readOnly = true;
   select.attrs.set('aria-readonly', 'true');
   const snapshot = surface.inspect();
-  assert.deepEqual(snapshot.components.find(c => c.id === 'notes').controls, []);
-  assert.deepEqual(snapshot.components.find(c => c.id === 'country').controls, []);
+  assert.deepEqual(Array.from(snapshot.components.find(c => c.id === 'notes').controls), []);
+  assert.deepEqual(Array.from(snapshot.components.find(c => c.id === 'country').controls), []);
   assert.equal(snapshot.components.find(c => c.id === 'notes').enabled, true);
   assert.throws(() => surface.invoke('notes', 'input', 'override'), /unavailable/);
   assert.throws(() => surface.invoke('country', 'change', 'in'), /unavailable/);
